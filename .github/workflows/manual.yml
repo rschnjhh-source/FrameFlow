@@ -1,0 +1,45 @@
+name: بناء FrameFlow APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: تحميل المشروع
+        uses: actions/checkout@v4
+
+      - name: إعداد Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: إعداد Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: إعداد Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: بناء APK
+        run: |
+          if [ -f "settings.gradle.kts" ]; then
+            gradle assembleDebug
+          elif [ -f "FrameFlow/settings.gradle.kts" ]; then
+            cd FrameFlow
+            gradle assembleDebug
+          else
+            echo "لم يتم العثور على مشروع Android"
+            exit 1
+          fi
+
+      - name: رفع APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FrameFlow-APK
+          path: |
+            **/build/outputs/apk/debug/*.apk
